@@ -14,8 +14,8 @@ app.use("/auth", require("./routes/auth"));
 app.use("/faculty", require("./routes/faculty"));
 
 // MongoDB Connection
-mongoose.connect("mongodb://127.0.0.1:27017/CSM")
-  .then(() => console.log("MongoDB Connected"))
+mongoose.connect("mongodb+srv://LikithaGindi:Likitha123@facultymanagementsystem.dg0ln4q.mongodb.net/CSM?retryWrites=true&w=majority")
+  .then(() => console.log("MongoDB Atlas Connected"))
   .catch(err => console.log(err));
 
 // Test Route
@@ -24,6 +24,8 @@ app.get("/", (req, res) => {
 });
 
 // Start Server
-app.listen(3000, () => {
-  console.log("Server running on http://localhost:3000");
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
