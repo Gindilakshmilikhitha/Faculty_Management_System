@@ -1,9 +1,9 @@
 const router = require("express").Router();
 
 const USER = {
-  name: "Narasimha",
-  email: "narasimha123@gmail.com",
-  password: "962004"
+  name: "LakshmiLikhitha",
+  email: "lakshmilikhithagindi@gmail.com",
+  password: "120906"
 };
 
 router.post("/login", (req, res) => {
