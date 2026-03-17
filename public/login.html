@@ -150,13 +150,19 @@ body::before {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
 
-  const res = await fetch("https://faculty-management-system-qcrk.onrender.com/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, email, password })
-  });
+  const res = await fetch("https://faculty-management-system-qcrk.onrender.com/auth/login", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    name: name,
+    email: email,
+    password: password
+  })
+});
 
-  const data = await res.json();
+const data = await res.json();
   console.log(data);
 
   const msg = document.getElementById("message");
