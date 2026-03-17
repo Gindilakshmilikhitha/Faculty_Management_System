@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Faculty Dashboard</title>
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: url('https://images.unsplash.com/photo-1497633762265-9d179a990aa6') no-repeat center center/cover;
+      height: 100vh;
+    }
+
+    /* Overlay */
+    body::before {
+      content: "";
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.6);
+      z-index: 0;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      padding: 20px;
+      color: white;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.15);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      animation: fadeIn 0.8s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    input {
+      padding: 10px;
+      border-radius: 6px;
+      border: none;
+      margin: 6px;
+      width: 200px;
+    }
+
+    button {
+  padding: 10px 15px;
+  border-radius: 6px;
+  border: none;
+  margin: 5px;
+  background: #00c6ff;
+  color: #002b5b; /* dark blue text */
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+    button:hover {
+      background: #0072ff;
+      transform: scale(1.05);
+    }
+
+    table {
+      width: 100%;
+      color: white;
+    }
+
+    th {
+      text-align: left;
+      padding: 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.3);
+    }
+
+    td {
+      padding: 8px;
+    }
+
+    tr:hover {
+      background: rgba(255,255,255,0.1);
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 5px;
+    }
+
+    .action-btn {
+      padding: 5px 8px;
+      font-size: 13px;
+    }
+
+    /* Mobile */
+    @media (max-width: 768px) {
+      input {
+        width: 100%;
+      }
+
+      button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <h2>📘 Faculty Dashboard</h2>
+
+  <!-- Add Faculty -->
+  <div class="card">
+    <h3>Add / Update Faculty</h3>
+
+    <input id="Id" placeholder="Id">
+    <input id="Name" placeholder="Name">
+    <input id="Subject" placeholder="Subject">
+    <input id="SubjectCode" placeholder="Subject Code"><br>
+
+    <button onclick="addFaculty()">Add Faculty</button>
+    <button id="updateBtn" onclick="updateFaculty()" style="display:none;">Update Faculty</button>
+    <button onclick="clearFields()">Clear</button>
+  </div>
+
+  <!-- Faculty List -->
+  <div class="card">
+    <h3>Faculty List</h3>
+    <button onclick="loadFaculty()">Load Faculty</button>
+
+    <div id="facultySection" style="display:none; margin-top:10px;">
+      <table>
+        <thead>
+          <tr>
+            <th>Id</th>
+            <th>Name</th>
+            <th>Subject</th>
+            <th>SubjectCode</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="facultyList"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+
+// Add Faculty
+async function addFaculty() {
+  const id = Id.value.trim();
+  const name = Name.value.trim();
+  const subject = Subject.value.trim();
+  const subjectCode = SubjectCode.value.trim();
+
+  if (!id || !name || !subject || !subjectCode) {
+    alert("⚠️ Please fill all fields");
+    return;
+  }
+
+  if (!confirm("➕ Add this faculty?")) {
+    clearFields();
+    return;
+  }
+
+  const res = await fetch("/faculty/add", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ Id: id, Name: name, Subject: subject, SubjectCode: subjectCode })
+  });
+
+  const data = await res.json();
+  alert(data.message);
+
+  if (data.message.includes("successfully")) {
+    clearFields();
+    loadFaculty();
+  }
+}
+
+// Edit
+function editFaculty(id, name, subject, subjectCode) {
+  if (!confirm("✏️ Edit this faculty?")) return;
+
+  Id.value = id;
+  Name.value = name;
+  Subject.value = subject;
+  SubjectCode.value = subjectCode;
+
+  Id.disabled = true;
+  updateBtn.style.display = "inline";
+}
+
+// Load
+async function loadFaculty() {
+  const res = await fetch("/faculty/all");
+  const data = await res.json();
+
+  const section = document.getElementById("facultySection");
+  const tableBody = document.getElementById("facultyList");
+
+  section.style.display = "block";
+
+  if (data.length === 0) {
+    tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center;">No faculty found</td></tr>`;
+    return;
+  }
+
+  tableBody.innerHTML = data.map(f => `
+    <tr>
+      <td>${f.Id}</td>
+      <td>${f.Name}</td>
+      <td>${f.Subject}</td>
+      <td>${f.SubjectCode || ""}</td>
+      <td>
+        <div class="action-buttons">
+          <button class="action-btn" onclick="editFaculty(${f.Id}, '${f.Name}', '${f.Subject}', '${f.SubjectCode}')">Edit</button>
+          <button class="action-btn" onclick="deleteFaculty(${f.Id})">Delete</button>
+        </div>
+      </td>
+    </tr>
+  `).join("");
+}
+
+// Update
+async function updateFaculty() {
+  const id = Id.value;
+
+  if (!confirm("💾 Update this faculty?")) {
+    alert("⚠️ No changes made");
+    clearFields();
+    return;
+  }
+
+  const res = await fetch(`/faculty/update/${id}`, {
+    method: "PUT",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({
+      Name: Name.value,
+      Subject: Subject.value,
+      SubjectCode: SubjectCode.value
+    })
+  });
+
+  const data = await res.json();
+  alert(data.message);
+
+  clearFields();
+  loadFaculty();
+}
+
+// Delete
+async function deleteFaculty(id) {
+  if (!confirm("🗑 Delete this faculty?")) return;
+
+  const res = await fetch(`/faculty/delete/${id}`, { method: "DELETE" });
+  const data = await res.json();
+
+  alert(data.message);
+  loadFaculty();
+}
+
+// Clear
+function clearFields() {
+  Id.disabled = false;
+  Id.value = "";
+  Name.value = "";
+  Subject.value = "";
+  SubjectCode.value = "";
+  updateBtn.style.display = "none";
+}
+
+</script>
+
+</body>
+</html>
